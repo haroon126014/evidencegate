@@ -1,44 +1,48 @@
 # EvidenceGate
 
-EvidenceGate is a GenLayer Intelligent Contract that verifies factual claims against public evidence using validator consensus.
+EvidenceGate is a GenLayer Intelligent Contract for checking factual claims against a public source.
 
-A user submits:
-- a factual claim
-- a public evidence URL
+You give it:
+- a claim
+- an evidence URL
 
-Validators classify the claim as:
+Validators read the source and return one of four results:
 - `SUPPORTED`
 - `CONTRADICTED`
 - `INSUFFICIENT`
 - `SOURCE_UNAVAILABLE`
 
-The final verdict and reasoning are stored on-chain.
+The verdict and a short explanation are stored on-chain.
 
-## How it works
+## Why I built it
 
-1. Call `create_claim(claim, evidence_url)`
-2. Call `evaluate()`
-3. Validators independently inspect the evidence
-4. GenLayer consensus determines the result
-5. Verdict and reasoning are stored
+Some on-chain workflows need to verify information that exists outside the chain.
 
-## Verdicts
+This can be useful for:
+- prediction market settlement
+- milestone checks
+- governance
+- agent claims
+- attestations
 
-`SUPPORTED` — evidence clearly supports the claim.
+The goal was to keep the contract small enough to reuse in other apps.
 
-`CONTRADICTED` — evidence clearly conflicts with the claim.
+## Contract flow
 
-`INSUFFICIENT` — evidence is readable but not enough to decide.
+1. Create a claim with `create_claim`
+2. Add a public evidence URL
+3. Call `evaluate`
+4. Validators inspect the source
+5. GenLayer consensus decides the result
+6. Read the verdict and reasoning from the contract
 
-`SOURCE_UNAVAILABLE` - evidence cannot meaningfully be accessed.
-
-## Public methods
+## Methods
 
 Write:
 - `create_claim(claim, evidence_url)`
 - `evaluate()`
 
-View:
+Read:
 - `get_claim()`
 - `get_evidence_url()`
 - `get_verdict()`
@@ -47,26 +51,26 @@ View:
 
 ## Consensus
 
-EvidenceGate uses:
+The contract uses:
 - `gl.nondet.web.render`
 - `gl.nondet.exec_prompt`
 - `gl.eq_principle.prompt_comparative`
 
-The verdict must match exactly between equivalent validator outputs.
+The verdict has to match exactly between equivalent validator outputs. Reasoning can be worded differently as long as it supports the same result.
 
 ## Validation
 
-The contract:
-- rejects empty claims
-- rejects empty evidence URLs
-- accepts only HTTP/HTTPS URLs
-- prevents duplicate claims
-- prevents repeated evaluation
-- restricts verdicts to four allowed values
+The contract checks:
+- empty claims
+- empty URLs
+- invalid URL schemes
+- duplicate claims
+- repeated evaluation
+- invalid verdict values
 
 ## Tests
 
-StudioNet integration tests:
+Run:
 
     gltest tests/test_evidencegate.py -v --network studionet
 
@@ -84,19 +88,13 @@ Evidence:
 
     https://docs.genlayer.com
 
-Observed result:
+Result:
 
     SUPPORTED
 
-## Limitations
+## Current limitation
 
-EvidenceGate currently:
-
-- evaluates one evidence URL per claim
-- does not cryptographically snapshot webpage content
-- does not support claim updates
-- does not assign confidence scores
-- is intended for factual rather than subjective claims
+Right now one claim uses one evidence URL, and the page content is not permanently snapshotted before evaluation.
 
 ## License
 
